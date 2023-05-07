@@ -1,9 +1,23 @@
-import { StyleSheet, Text, View, ImageBackground, TextInput, TouchableOpacity } from 'react-native'
+import {
+    StyleSheet,
+    Text,
+    View,
+    ImageBackground,
+    TextInput,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    Keyboard
+} from 'react-native'
 import { AntDesign } from '@expo/vector-icons'
 import backgroundImage from '../assets/images/background.png'
 import { useFonts } from 'expo-font'
+import { useState } from 'react'
 
 export default function RegistrationScreen() {
+    const [login, setLogin] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+
     const [fontsLoaded] = useFonts({
     RobotoBold: require('../assets/fonts/RobotoBold.ttf'),
     RobotoMedium: require('../assets/fonts/RobotoMedium.ttf'),
@@ -14,52 +28,69 @@ export default function RegistrationScreen() {
         return null
     }
 
+    const onRegistration = () => {
+        console.log(`${login} + ${email} + ${password}`);
+        reset();
+    } 
+
+    const reset = () => {
+        setLogin('');
+        setEmail('');
+        setPassword('');
+    }
+
     return (
-        <View style={styles.container} >
-            <ImageBackground
-                source={backgroundImage}
-                style={styles.image}
-            >
-            <View style={styles.form}>
-                <View style={styles.addImage}>
-                    <AntDesign
-                    name="pluscircleo"
-                    size={25}
-                    color="#FF6C00"
-                    backgroundColor="white"
-                    style={styles.buttonAddImage}
-                    />
-                </View>
-            <Text style={styles.title}>Sign up</Text>
-            <TextInput
-                style={{
-                ...styles.input,
-                }}
-                placeholder="Login"
-            />
-            <TextInput
-                style={{
-                ...styles.input,
-                }}
-                placeholder="Email"
-            />
-            <View style={styles.password}>
-                <TextInput
-                style={{
-                    ...styles.input,
-                }}
-                placeholder="Password"
-                autoComplete='password'
-                />
-                <Text style={styles.textInput}> Show </Text>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={styles.container} >
+                <ImageBackground
+                    source={backgroundImage}
+                    style={styles.image}
+                >
+                    <View style={styles.form}>
+                        <View style={styles.addImage}>
+                            <AntDesign
+                                name="pluscircleo"
+                                size={25}
+                                color="#FF6C00"
+                                backgroundColor="white"
+                                style={styles.buttonAddImage}
+                            />
+                        </View>
+                        <Text style={styles.title}>Sign up</Text>
+                            <TextInput
+                                style={{...styles.input}}
+                                placeholder="Login"
+                                value={login}
+                                onChangeText={setLogin}        
+                            />
+                            <TextInput
+                                style={{...styles.input}}
+                                placeholder="Email"
+                                value={email}
+                                onChangeText={setEmail}        
+                            />
+                            <View style={styles.password}>
+                                <TextInput
+                                style={{...styles.input}}
+                                placeholder="Password"
+                                autoComplete="password"
+                                value={password}
+                                onChangeText={setPassword}        
+                                />
+                                <Text style={styles.textInput}> Show </Text>
+                            </View>
+                            <TouchableOpacity
+                                style={styles.button}
+                                title="Sign up"    
+                                onPress={onRegistration}
+                            >
+                                <Text style={styles.buttonText}> Sign up </Text>
+                            </TouchableOpacity>
+                        <Text style={styles.text}>Already have an account? Sign in</Text>
+                    </View>
+                </ImageBackground>
             </View>
-            <TouchableOpacity style={styles.button} title="Sign up">
-                <Text style={styles.buttonText}> Sign up </Text>
-            </TouchableOpacity>
-            <Text style={styles.text}>Already have an account? Sign in</Text>
-            </View>
-        </ImageBackground>
-        </View>
+        </TouchableWithoutFeedback>
     )
     }
 

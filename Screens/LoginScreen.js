@@ -5,11 +5,18 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
+    TouchableWithoutFeedback,
+    Keyboard,
 } from 'react-native'
 import backgroundImage from '../assets/images/background.png'
 import { useFonts } from 'expo-font'
+import { useState } from 'react';
 
 export default function LoginScreen() {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+
+
     const [fontsLoaded] = useFonts({
     RobotoBold: require('../assets/fonts/RobotoBold.ttf'),
     RobotoMedium: require('../assets/fonts/RobotoMedium.ttf'),
@@ -20,7 +27,18 @@ export default function LoginScreen() {
         return null
     }
 
-     return (
+    const onLogin = () => {
+        console.log(`${email} + ${password}`);
+        reset();
+    } 
+
+    const reset = () => {
+        setEmail('');
+        setPassword('');
+    }
+
+    return (
+         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={styles.container}>
                 <ImageBackground
                     source={backgroundImage}
@@ -32,6 +50,8 @@ export default function LoginScreen() {
                                     style={styles.input}
                                     placeholder='Email'
                                     autoComplete='email'
+                                    value={email}
+                                    onChangeText={setEmail}  
                                 />
                             </View>
                             <View style={styles.password}>
@@ -39,17 +59,22 @@ export default function LoginScreen() {
                                     style={styles.input}
                                     placeholder='Password'
                                     autoComplete='password'
+                                    value={password}
+                                    onChangeText={setPassword}  
                                 />
                                 <Text style={styles.textInput}> Show </Text>
                             </View>
-                        <TouchableOpacity style={styles.button} >
-                            <Text style={styles.buttonText}>Sign in</Text>
-                        </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.button}
+                                onPress={onLogin}>
+                                <Text style={styles.buttonText}>Sign in</Text>
+                            </TouchableOpacity>
                         <Text style={styles.signUp}>Need an account? Sign up</Text> 
                     </View>
                 </ImageBackground>
-            </View>    
-        )
+            </View>
+        </TouchableWithoutFeedback>
+    )
 }
 
 const styles = StyleSheet.create({
