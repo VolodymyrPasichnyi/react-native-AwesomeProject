@@ -16,7 +16,16 @@ export default function LoginScreen() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
+    const onLogin = () => {
+        console.log(`${email} + ${password}`);
+        reset();
+    } 
 
+    const reset = () => {
+        setEmail('');
+        setPassword('');
+    }
+    
     const [fontsLoaded] = useFonts({
     RobotoBold: require('../assets/fonts/RobotoBold.ttf'),
     RobotoMedium: require('../assets/fonts/RobotoMedium.ttf'),
@@ -27,15 +36,7 @@ export default function LoginScreen() {
         return null
     }
 
-    const onLogin = () => {
-        console.log(`${email} + ${password}`);
-        reset();
-    } 
 
-    const reset = () => {
-        setEmail('');
-        setPassword('');
-    }
 
     return (
          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>

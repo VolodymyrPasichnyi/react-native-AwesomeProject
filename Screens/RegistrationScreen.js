@@ -18,16 +18,6 @@ export default function RegistrationScreen() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    const [fontsLoaded] = useFonts({
-    RobotoBold: require('../assets/fonts/RobotoBold.ttf'),
-    RobotoMedium: require('../assets/fonts/RobotoMedium.ttf'),
-    RobotoRegular: require('../assets/fonts/RobotoRegular.ttf'),
-    })
-
-    if (!fontsLoaded) {
-        return null
-    }
-
     const onRegistration = () => {
         console.log(`${login} + ${email} + ${password}`);
         reset();
@@ -37,6 +27,16 @@ export default function RegistrationScreen() {
         setLogin('');
         setEmail('');
         setPassword('');
+    }
+
+    const [fontsLoaded] = useFonts({
+        RobotoBold: require('../assets/fonts/RobotoBold.ttf'),
+        RobotoMedium: require('../assets/fonts/RobotoMedium.ttf'),
+        RobotoRegular: require('../assets/fonts/RobotoRegular.ttf'),
+    })
+
+    if (!fontsLoaded) {
+        return null
     }
 
     return (
