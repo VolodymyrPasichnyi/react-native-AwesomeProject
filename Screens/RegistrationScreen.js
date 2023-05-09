@@ -12,22 +12,13 @@ import { AntDesign } from '@expo/vector-icons'
 import backgroundImage from '../assets/images/background.png'
 import { useFonts } from 'expo-font'
 import { useState } from 'react'
+import { useNavigation } from '@react-navigation/native'
 
 export default function RegistrationScreen() {
+    const navigation = useNavigation();
     const [login, setLogin] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-
-    const onRegistration = () => {
-        console.log(`${login} + ${email} + ${password}`);
-        reset();
-    } 
-
-    const reset = () => {
-        setLogin('');
-        setEmail('');
-        setPassword('');
-    }
 
     const [fontsLoaded] = useFonts({
         RobotoBold: require('../assets/fonts/RobotoBold.ttf'),
@@ -82,11 +73,16 @@ export default function RegistrationScreen() {
                             <TouchableOpacity
                                 style={styles.button}
                                 title="Sign up"    
-                                onPress={onRegistration}
+                                onPress={() => navigation.navigate('Home')}
                             >
                                 <Text style={styles.buttonText}> Sign up </Text>
                             </TouchableOpacity>
-                        <Text style={styles.text}>Already have an account? Sign in</Text>
+                        <Text
+                            style={styles.text}
+                            onPress={() => navigation.navigate('Login')}
+                        >
+                            Already have an account? Sign in
+                        </Text>
                     </View>
                 </ImageBackground>
             </View>

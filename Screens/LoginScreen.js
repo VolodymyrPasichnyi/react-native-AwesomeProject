@@ -11,20 +11,12 @@ import {
 import backgroundImage from '../assets/images/background.png'
 import { useFonts } from 'expo-font'
 import { useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
 
 export default function LoginScreen() {
+    const navigation = useNavigation();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-
-    const onLogin = () => {
-        console.log(`${email} + ${password}`);
-        reset();
-    } 
-
-    const reset = () => {
-        setEmail('');
-        setPassword('');
-    }
     
     const [fontsLoaded] = useFonts({
     RobotoBold: require('../assets/fonts/RobotoBold.ttf'),
@@ -67,10 +59,15 @@ export default function LoginScreen() {
                             </View>
                             <TouchableOpacity
                                 style={styles.button}
-                                onPress={onLogin}>
-                                <Text style={styles.buttonText}>Sign in</Text>
+                                onPress={() => navigation.navigate('Home')}>
+                            <Text style={styles.buttonText}>Sign in</Text>
                             </TouchableOpacity>
-                        <Text style={styles.signUp}>Need an account? Sign up</Text> 
+                        <Text
+                            style={styles.signUp}
+                            onPress={() => navigation.navigate('Registration')}
+                        >
+                            Need an account? Sign up
+                        </Text> 
                     </View>
                 </ImageBackground>
             </View>
