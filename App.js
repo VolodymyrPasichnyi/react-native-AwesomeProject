@@ -21,7 +21,7 @@ export default function App() {
     <View style={styles.container}>
        <StatusBar style="auto" />
         <NavigationContainer>
-          <MainStack.Navigator >    
+          <MainStack.Navigator initialRouteName='Registration'>    
             <MainStack.Screen name='Registration' component={RegistrationScreen} options={{ headerShown: false }} />
             <MainStack.Screen name='Login' component={LoginScreen} options={{ headerShown: false }} />
             <MainStack.Screen name='Home' component={Home} options={{ headerShown: false }}/>

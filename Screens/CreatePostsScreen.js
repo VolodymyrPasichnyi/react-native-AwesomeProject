@@ -1,9 +1,36 @@
-import { Entypo, Ionicons } from '@expo/vector-icons'
+import { Entypo, Feather, Ionicons } from '@expo/vector-icons'
+import { Camera } from 'expo-camera'
 import { useFonts } from 'expo-font'
-import { StyleSheet, Text, TextInput, View } from 'react-native'
+import { useState } from 'react'
+import { Image, StyleSheet, Text, TextInput, View } from 'react-native'
+import { TouchableOpacity } from 'react-native-gesture-handler'
+import * as Location from "expo-location"
+
+const initialState = {
+    name: '',
+    place: '',
+}
+
+export default function CreatePostsScreen({ navigation }) {
+    const [camera, setCamera] = useState(null);
+    const [photo, setPhoto] = useState('');
+    const [state, setState] = useState(initialState);
 
 
-export default function CreatePostsScreen() {
+    const takePhoto = async () => {
+        const photo = await camera.takePictureAsync();
+        const location = await Location.getCurrentPositionAsync();
+        console.log('latitude', location.coords.latitude);
+        console.log('longitude', location.coords.longitude);
+        setPhoto(photo.uri);
+    }
+
+    const sendPhoto = () => {
+        navigation.navigate('Default', { photo, location, state });
+        setState(initialState);
+        setPhoto('');
+    }
+
     const [fontsLoaded] = useFonts({
     RobotoBold: require('../assets/fonts/RobotoBold.ttf'),
     RobotoMedium: require('../assets/fonts/RobotoMedium.ttf'),
@@ -17,18 +44,27 @@ export default function CreatePostsScreen() {
     return (
        <View style={styles.container}>  
             <View style={styles.avatar}>     
-                <View style={styles.avatarBox}>   
-                    <View style={styles.avatarImage}>
-                        <View style={styles.avatarCamera}>
-                            <Entypo name="camera" size={24} color="#BDBDBD" />
+                <View style={styles.avatarBox}>
+                    <Camera style={styles.camera} ref={setCamera}> 
+                      {photo && (
+                        <View style={styles.avatarImage} >
+                            <Image source={{ uri: photo }} style={styles.avatarCamera} />
                         </View>
-                    </View>
+                      )}
+                        <TouchableOpacity style={styles.snapCamera} onPress={takePhoto}>
+                            <Feather name="camera" size={24} color="#FFFFFF" />
+                        </TouchableOpacity>
+                    </Camera>
                     <Text style={styles.textPhoto}>Upload photo</Text>
                 </View>
                 <View style={styles.avatarForm}>  
                     <TextInput
                         style={styles.input}
                         placeholder='title'
+                        value={state.name}
+                        onChangeText={(value) =>
+                            setState((prevState) => ({ ...prevState, name: value }))
+                        }
                     />
                     <View style={styles.location}>
                         <View style={styles.locationIcon}>
@@ -36,13 +72,17 @@ export default function CreatePostsScreen() {
                         </View>
                         <TextInput
                             style={styles.input}
-                            placeholder='location'                            
+                            placeholder='place'
+                            value={state.place}
+                            onChangeText={(value) =>
+                                setState((prevState) => ({ ...prevState, place: value }))
+                            }
                         />  
                     </View>                                      
                 </View>
-                <View style={styles.button}>  
-                    <Text style={styles.publish}>Publish</Text>
-                </View>
+                <TouchableOpacity style={styles.button} onPress={sendPhoto}>  
+                        <Text style={styles.publish}>Publish</Text>
+                </TouchableOpacity>
             </View>
         </View>
     )
@@ -63,6 +103,11 @@ const styles = StyleSheet.create({
         gap: 32,
         marginHorizontal: 16,
     },
+    camera: {
+        height: 300,
+        marginHorizontal: 12,
+        alignItems: 'center',
+    },
     avatarBox: {
         display: 'flex',
         flexDirection: 'column',
@@ -80,11 +125,19 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         position: 'absolute',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: 'transparent',
+        width: 60,
+        height: 120,
+        top: 90,
+        left: 142
+    },
+    snapCamera: {
         width: 60,
         height: 60,
-        top: 90,
-        left: 142,
+        backgroundColor: 'transparent',
+        borderRadius: 45,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     textPhoto: {
         fontFamily: 'RobotoRegular',

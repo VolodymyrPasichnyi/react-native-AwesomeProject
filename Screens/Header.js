@@ -21,7 +21,7 @@ export default function Header({ title }) {
                 size={24}
                 color="black"
                 backgroundColor="transparent"
-                onPress={() => navigation.navigate('LoginScreen')}
+                onPress={() => navigation.navigate('Login')}
             />
         </View>
     )
