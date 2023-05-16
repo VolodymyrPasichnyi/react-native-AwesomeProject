@@ -1,34 +1,36 @@
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { StyleSheet, Text, View } from "react-native";
-
+import { useDispatch } from "react-redux";
+import { logout } from '../redux/auth/authOperations';
 
 export default function Header({ title }) {
     const navigation = useNavigation();
+    const dispatch = useDispatch();
+
+    const handleSubmit = () => {
+        dispatch(logout());
+    }
 
     return (
-        <View style={styles.container}>
-            <AntDesign
-                name="arrowleft"
-                size={24}
-                color="#212121"
+         <View style={styles.container}>
+            <AntDesign name="arrowleft" size={24} color="#212121"
                 backgroundColor={'transparent'}
-                onPress={() => navigation.navigate('Home')}
+                onPress={() => navigation.navigate("Home")}
             />
+            
             <Text style={styles.titleHeader}>{title}</Text>
-            <MaterialIcons
-                name="logout"
-                size={24}
-                color="black"
+
+            <MaterialIcons name="logout" size={24} color="black"
                 backgroundColor="transparent"
-                onPress={() => navigation.navigate('Login')}
+                onPress={handleSubmit}
             />
         </View>
     )
 }
 
 const styles = StyleSheet.create({
-    container: {
+     container: {
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',

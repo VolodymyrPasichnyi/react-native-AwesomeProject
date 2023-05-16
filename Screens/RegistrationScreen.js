@@ -13,12 +13,24 @@ import backgroundImage from '../assets/images/background.png'
 import { useFonts } from 'expo-font'
 import { useState } from 'react'
 import { useNavigation } from '@react-navigation/native'
+import { useDispatch } from 'react-redux'
+import { register } from '../redux/auth/authOperations'
+
 
 export default function RegistrationScreen() {
     const navigation = useNavigation();
+    const dispatch = useDispatch();
     const [login, setLogin] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+
+
+    const handleSubmit = () => {
+        dispatch(register({ login, email, password }));
+        setLogin('');
+        setEmail('');
+        setPassword('');
+    }
 
     const [fontsLoaded] = useFonts({
         RobotoBold: require('../assets/fonts/RobotoBold.ttf'),
@@ -73,7 +85,7 @@ export default function RegistrationScreen() {
                             <TouchableOpacity
                                 style={styles.button}
                                 title="Sign up"    
-                                onPress={() => navigation.navigate('Home')}
+                                onPress={handleSubmit}
                             >
                                 <Text style={styles.buttonText}> Sign up </Text>
                             </TouchableOpacity>

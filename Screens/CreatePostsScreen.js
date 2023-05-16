@@ -1,87 +1,176 @@
 import { Entypo, Feather, Ionicons } from '@expo/vector-icons'
 import { Camera } from 'expo-camera'
-import { useFonts } from 'expo-font'
-import { useState } from 'react'
-import { Image, StyleSheet, Text, TextInput, View } from 'react-native'
+import { useEffect, useState, useRef } from 'react'
+import { Animated, Image, StyleSheet, Text, TextInput, View, Keyboard } from 'react-native'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import * as Location from "expo-location"
+import * as MediaLibrary from 'expo-media-library'
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { collection, addDoc } from 'firebase/firestore';
+import { db, storage } from '../firebase/config';
+import { selectName, selectUserId } from '../redux/auth/authSelectors';
+import { useSelector } from 'react-redux';
+
 
 const initialState = {
     name: '',
-    place: '',
-}
+    location: '',
+    photo: null,
+    coordinate: null,
+};
 
-export default function CreatePostsScreen({ navigation }) {
+
+export default function CreatePostsScreen() {
     const [camera, setCamera] = useState(null);
-    const [photo, setPhoto] = useState('');
     const [state, setState] = useState(initialState);
+    const [hasPermission, setHasPermission] = useState(null);
+    const [cameraType, setCameraType] = useState(Camera.Constants.Type.back);
+    const [errorMsg, setErrorMsg] = useState(null);
+    const [gesturePosition, setGesturePosition] = useState(new Animated.ValueXY());
+    const userId = useSelector(selectUserId);
+    const userName = useSelector(selectName);
 
+    useEffect(() => {
+        ;(async () => {
+            const { status } = await Camera.requestCameraPermissionsAsync()
+            await MediaLibrary.requestPermissionsAsync()
+            setHasPermission(status === 'granted')
+        })()
+        ;(async () => {
+            let { status } = await Location.requestForegroundPermissionsAsync()
+            if (status !== 'granted') {
+                setErrorMsg('Permission to access location was denied')
+                return
+            }
+        })()
+    }, [])
+
+    if (hasPermission === null) {
+        return <View />
+    }
+    if (hasPermission === false) {
+        return <Text>No access to camera</Text>
+    }
 
     const takePhoto = async () => {
         const photo = await camera.takePictureAsync();
-        const location = await Location.getCurrentPositionAsync();
-        console.log('latitude', location.coords.latitude);
-        console.log('longitude', location.coords.longitude);
-        setPhoto(photo.uri);
+        const location = await Location.getCurrentPositionAsync({});
+        const coords = {
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+        }
+        setState((prevState) => ({
+            ...prevState,
+            photo: photo.uri,
+            coordinate: coords,
+        }))
+        await MediaLibrary.createAssetAsync(photo.uri);
     }
 
-    const sendPhoto = () => {
-        navigation.navigate('Default', { photo, location, state });
-        setState(initialState);
-        setPhoto('');
+    const uploadPostToServer = async () => {
+        try {
+            const photoUrl = await uploadPhotoToServer()
+            const uploadedInfo = {
+                displayName: userName,
+                photo: photoUrl,
+                name: state.name,
+                location: state.location,
+                coordinate: state.coordinate,
+                userId,
+                likes: [],
+                comments: 0,
+            }
+            await addDoc(collection(db, 'posts'), uploadedInfo)
+            Keyboard.dismiss()
+            setState(initialState)
+            setIsKeyboardShown(false)
+            navigation.navigate('Posts')
+        } catch (error) {
+            console.log(error)
+        }
     }
 
-    const [fontsLoaded] = useFonts({
-    RobotoBold: require('../assets/fonts/RobotoBold.ttf'),
-    RobotoMedium: require('../assets/fonts/RobotoMedium.ttf'),
-    RobotoRegular: require('../assets/fonts/RobotoRegular.ttf'),
-    })
+    const uploadPhotoToServer = async () => {
+        try {
+            const response = await fetch(state.photo)
+            const file = await response.blob()
+            const uniquePostId = Date.now().toString()
+            const linkToFile = ref(storage, `imgPost/${uniquePostId}`)
+            await uploadBytes(linkToFile, file)
+            const photoUrl = await getDownloadURL(
+                ref(storage, `imgPost/${uniquePostId}`),
+            )
+            return photoUrl
+        } catch (error) {
+            console.log(error)
+        }
+    }
 
-    if (!fontsLoaded) {
-        return null
+    const openCamera = async () => {
+        setState((prevState) => ({ ...prevState, photo: null }))
+        setCamera(camera)
+        setIsKeyboardShown(false)
+    }
+
+    function checkCamera() {
+        setCameraType(
+        cameraType === Camera.Constants.Type.back
+            ? Camera.Constants.Type.front
+            : Camera.Constants.Type.back,
+        )
     }
 
     return (
        <View style={styles.container}>  
-            <View style={styles.avatar}>     
-                <View style={styles.avatarBox}>
-                    <Camera style={styles.camera} ref={setCamera}> 
-                      {photo && (
-                        <View style={styles.avatarImage} >
-                            <Image source={{ uri: photo }} style={styles.avatarCamera} />
+            <View style={styles.wrapAvatar}>     
+                    {state.photo ? (
+                        <View style={styles.wrapAvatarBox}>
+                            <Image source={{ uri: state.photo }} style={styles.photo} />
+                            <TouchableOpacity style={styles.wrapAvatarCamera} onPress={openCamera}>
+                                <Feather name="camera" size={20} color="#FFFFFF" />
+                            </TouchableOpacity>
                         </View>
-                      )}
-                        <TouchableOpacity style={styles.snapCamera} onPress={takePhoto}>
-                            <Feather name="camera" size={24} color="#FFFFFF" />
-                        </TouchableOpacity>
-                    </Camera>
-                    <Text style={styles.textPhoto}>Upload photo</Text>
-                </View>
-                <View style={styles.avatarForm}>  
+                    ): (
+                        <View style={styles.wrapAvatarFoto}>
+                            <Camera style={styles.camera} ref={setCamera} type={cameraType}>
+                                <TouchableOpacity style={styles.iconWrap} onPress={takePhoto}>
+                                    <Feather name="camera" size={20} color="#BDBDBD" />
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={styles.checkCamera}
+                                    onPress={checkCamera}
+                                >
+                                    <Ionicons
+                                    name="ios-camera-reverse-outline"
+                                    size={24}
+                                    color="#BDBDBD"
+                                    />
+                                </TouchableOpacity>
+                            </Camera>
+                        </View>
+                )}
+                <Text style={styles.paragraf}>Upload photo</Text>
+                <View style={styles.wrapAvatarForm}>  
                     <TextInput
                         style={styles.input}
                         placeholder='title'
                         value={state.name}
-                        onChangeText={(value) =>
-                            setState((prevState) => ({ ...prevState, name: value }))
-                        }
+                        onChangeText={value => setState(prevState => ({ ...prevState, name: value }))}
                     />
-                    <View style={styles.location}>
-                        <View style={styles.locationIcon}>
+                    <View style={styles.wrapLocation}>
+                        <View style={styles.wrapLocationIcon}>
                             <Ionicons name="location-outline" size={24} color="#BDBDBD" />
                         </View>
                         <TextInput
-                            style={styles.input}
-                            placeholder='place'
-                            value={state.place}
-                            onChangeText={(value) =>
-                                setState((prevState) => ({ ...prevState, place: value }))
-                            }
-                        />  
+                        style={styles.inputLocation}
+                        placeholder='place'                            
+                        value={state.location}
+                        onChangeText={value => setState(prevState => ({ ...prevState, location: value }))}
+                    />  
                     </View>                                      
                 </View>
-                <TouchableOpacity style={styles.button} onPress={sendPhoto}>  
-                        <Text style={styles.publish}>Publish</Text>
+                <TouchableOpacity style={styles.button} onPress={uploadPostToServer}>  
+                    <Text style={styles.paragraf}>publish</Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -90,62 +179,77 @@ export default function CreatePostsScreen({ navigation }) {
 
 
 const styles = StyleSheet.create({
-    container: {
+      container: {
         flex: 1,
         backgroundColor: '#fff',
         alignItems: 'center',
         justifyContent: 'center',
     },
-    avatar: {
+    wrapAvatar: {
         width: 343,
         display: 'flex',
         flexDirection: 'column',
         gap: 32,
         marginHorizontal: 16,
+        arginTop: 32,
     },
-    camera: {
-        height: 300,
-        marginHorizontal: 12,
-        alignItems: 'center',
-    },
-    avatarBox: {
+    wrapAvatarBox: {
         display: 'flex',
         flexDirection: 'column',
         gap: 8,
-        justifyContent: 'center',
     },
-    avatarImage: {
+    camera: {
+        flex: 1,
+        width: 343,
+        alignItems: 'center',
+    },
+    iconWrap: {
+        position: 'absolute',
+        top: 90,
+        right: 141,
+        width: 60,
+        height: 60,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'white',
+        borderRadius: 45,
+    },
+    checkCamera: {
+        // position: 'absolute',
+        // top: 10,
+        // right: 10,
+        // height: 40,
+        // width: 40,
+        // justifyContent: 'center',
+        // alignItems: 'center',
+        // backgroundColor: 'rgba(255, 255, 255, 0.3)',
+        // borderRadius: 50,
+        borderColor: 'transparent',
+    },
+    wrapAvatarFoto: {
         width: 343,
         height: 240,
         backgroundColor: '#F6F6F6',
         border: '1 solid #E8E8E8',
     },
-    avatarCamera: {
+    wrapAvatarCamera: {
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        position: 'absolute',
-        backgroundColor: 'transparent',
-        width: 60,
-        height: 120,
-        top: 90,
-        left: 142
-    },
-    snapCamera: {
+        backgroundColor: '#FFFFFF',
         width: 60,
         height: 60,
-        backgroundColor: 'transparent',
-        borderRadius: 45,
-        alignItems: 'center',
-        justifyContent: 'center',
+        top: 90,
+        left: 142,
     },
-    textPhoto: {
+    paragraf: {
         fontFamily: 'RobotoRegular',
         fontSize: 16,
         lineHeight: 19,
         color: '#BDBDBD',
+        textAlign: 'left',
     },
-    avatarForm: {
+    wrapAvatarForm: {
         display: 'flex',
         flexDirection: 'column',
         gap: 16,
@@ -161,21 +265,38 @@ const styles = StyleSheet.create({
         lineHeight: 19,
         color: '#BDBDBD',
     },
-    location: {
+    wrapLocation: {
         display: 'flex',
         flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 32,
     },
-    publish: {
-        color: '#BDBDBD',
+    wrapLocationIcon: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+    },
+    inputLocation: {
+        position: 'relative',
+        width: '100%',
+        height: 40,
+        paddingLeft: 34,
+        borderBottomWidth: 1,
+        borderColor: '#E8E8E8',
+        fontFamily: 'RobotoRegular',
         fontSize: 16,
         lineHeight: 19,
     },
     button: {
-        width: 340,
-        height: 50,
+        width: 343,
+        height: 51,
+        paddingHorizontal: 32,
+        paddingVertical: 16,
         backgroundColor: '#F6F6F6',
+        borderRadius: 100,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        marginBottom: 120,
     }
 })

@@ -1,84 +1,84 @@
-import { Ionicons } from '@expo/vector-icons'
-import { useFonts } from 'expo-font'
-import { Image, Keyboard, StyleSheet, Text, TextInput, TouchableWithoutFeedback, View } from 'react-native'
+import { AntDesign } from '@expo/vector-icons'
+import { useState, useRef, useEffect  } from 'react'
+import { Image, Keyboard, StyleSheet, TextInput, FlatList, View } from 'react-native'
+import { doc, updateDoc, collection, getDoc, addDoc, onSnapshot } from 'firebase/firestore'
+import { db } from '../firebase/config'
+import { useSelector } from 'react-redux'
+import { selectPhoto, selectUserId } from '../redux/auth/authSelectors'
+import Comment from '../Components/Comment'
 
-export default function CommentsScreen() {
-    const [fontsLoaded] = useFonts({
-        RobotoBold: require('../assets/fonts/RobotoBold.ttf'),
-        RobotoMedium: require('../assets/fonts/RobotoMedium.ttf'),
-        RobotoRegular: require('../assets/fonts/RobotoRegular.ttf'),
-    })
 
-    if (!fontsLoaded) {
-        return null
+export default function CommentsScreen({ route }) {
+    const [comment, setComment] = useState('');
+    const [allComments, setAllComments] = useState();
+    const userId = useSelector(selectUserId);
+    const userPhoto = useSelector(selectPhoto);
+    const { photo, id } = route;
+    const postId = route.key;
+    const date = new Date();
+
+    useEffect(() => {
+        getAllPosts();
+    }, [])
+
+    const createPost = async () => {
+        await addDoc(collection(db, 'posts', postId, 'comments'), {
+        comment,
+        date,
+        userId,
+        userPhoto,
+        })
+        const docRef = doc(db, 'posts', postId)
+        const docSnap = await getDoc(docRef)
+        const docData = docSnap.data()
+        await updateDoc(docRef, { comments: docData.comments + 1 })
     }
+
+    const getAllPosts = async () => {
+        onSnapshot(collection(db, 'posts', postId, 'comments'), (querySnapshot) => {
+        const commentsArray = querySnapshot.docs
+
+            .map((doc) => ({
+            ...doc.data(),
+            id: doc.id,
+            }))
+            .sort((a, b) => a.date.seconds - b.date.seconds)
+
+        setAllComments(commentsArray)
+        })
+    }
+
 
     return (
         <View style={styles.container}>
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                <View style={styles.comments}>
-                    <View style={styles.commentImage}>
-                        <Image
-                            style={styles.comment}
-                            source={require('../assets/images/ContentBlock.png')}
-                        />
-                    </View>
-                <View style={styles.commentList}>
-                    <View style={styles.commentItem}>
-                        <View style={styles.commentAvatarWrap}>
-                            <Image
-                                source={require('../assets/images/User.png')}
-                                style={styles.commentAvatar}
-                            />
-                        </View>
-                    <View style={styles.commentTextWrap}>
-                        <Text style={styles.commentText}>
-                            "Really love your most recent photo. I’ve been trying to
-                            capture the same thing for a few months and would love some
-                            tips!"
-                        </Text>
-                        <Text style={styles.commentData}>09 june, 2020 | 09:14</Text>
-                    </View>
-                    </View>
-                    <View style={styles.commentItem}>
-                        <View style={styles.commentTextWrap}>
-                            <Text style={styles.commentText}>
-                                "Really love your most recent photo. I’ve been trying to
-                                capture the same thing for a few months and would love some
-                                tips!"
-                            </Text>
-                            <Text style={styles.commentData}>09 june, 2020 | 09:14</Text>
-                        </View>
-                    <View style={styles.commentAvatarWrap}>
-                        <Image
-                            source={require('../assets/images/User.png')}
-                            style={styles.commentAvatar}
-                        />
-                    </View>
-                    </View>
-                    <View style={styles.commentItem}>
-                        <View style={styles.commentAvatarWrap}>
-                            <Image
-                            source={require('../assets/images/User.png')}
-                            style={styles.commentAvatar}
-                            />
-                        </View>
-                    <View style={styles.commentTextWrap}>
-                        <Text style={styles.commentText}>
-                            "Really love your most recent photo. I’ve been trying to
-                            capture the same thing for a few months and would love some
-                            tips!"
-                        </Text>
-                        <Text style={styles.commentData}>09 june, 2020 | 09:14</Text>
-                    </View>
-                    </View>
-                    <TextInput style={styles.input} />
-                        <View style={styles.commentIonicons}>
-                            <Ionicons name="md-arrow-up-circle" size={34} color="#FF6C00" />
-                        </View>
-                    </View>
-                </View>
-            </TouchableWithoutFeedback>
+            <Image style={styles.commentImage} source={{ uri: photo }} />
+            <FlatList
+                data={allComments}
+                keyExtractor={(item) => item.id.toString()}
+                renderItem={({ item }) => <Comment item={item} />}
+            />
+            <View>
+                <TextInput
+                    placeholder="Comment..."
+                    style={styles.commentInput}
+                    value={comment}
+                    onChangeText={(text) => setComment(text)}
+                />
+                <TouchableOpacity activeOpacity={0.8} style={styles.commentButton}>
+                    <AntDesign
+                        name="arrowup"
+                        size={24}
+                        color="#FFFFFF"
+                        style={styles.commentIconArrowup}
+                        opacity={0.6}
+                        onPress={() => {
+                        setComment('')
+                        Keyboard.dismiss()
+                        createPost()
+                        }}
+                    />
+                </TouchableOpacity>
+            </View>
         </View>
     )
 }    
@@ -86,91 +86,40 @@ export default function CommentsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        marginTop: 32,
+        marginBottom: 16,
+        marginHorizontal: 16,
+        justifyContent: 'space-between',
         backgroundColor: '#fff',
         fontFamily: 'RobotoRegular',
     },
-    comments: {
-        display: 'flex',
-        gap: 32,
-        backgroundColor: '#fff',
-        width: '100%',
-        paddingHorizontal: 16,
-        paddingTop: 32,
-    },
-    comment: {
+    commentImage: {
         width: 343,
         height: 240,
         borderRadius: 8,
+        marginBottom: 32,
     },
-    commentImage: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: 8,
-    },
-
-    commentList: {
-        gap: 24,
-    },
-    commentItem: {
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'center',
-        flexDirection: 'row',
-        gap: 16,
-    },
-    commentAvatarWrap: {
-        width: 28,
-        height: 28,
-        borderRadius: 50,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    commentAvatar: {
-        width: 28,
-        height: 28,
-        borderRadius: 50,
-    },
-    commentTextWrap: {
-        backgroundColor: 'rgba(0, 0, 0, 0.03)',
-        borderBottomRightRadius: 6,
-        borderBottomLeftRadius: 6,
-        borderTopRightRadius: 6,
+    commentInput: {
         padding: 16,
-        width: 299,
-        gap: 8,
-    },
-    commentText: {
-        fontFamily: 'RobotoRegular',
-        fontSize: 13,
-        lineHeight: 18,
-    },
-    commentData: {
-        fontFamily: 'RobotoRegular',
-        fontSize: 10,
-        lineHeight: 12,
-        textAlign: 'right',
-        color: '#BDBDBD',
-    },
-    input: {
-        position: 'relative',
-        height: 50,
-        width: 340,
-        padding: 16,
+        borderRadius: 50,
         borderWidth: 1,
-        borderRadius: 100,
         borderColor: '#E8E8E8',
-        borderEndWidth: 1,
         backgroundColor: '#F6F6F6',
-        color: '#BDBDBD',
+        fontFamily: 'RobotoMedium',
         fontSize: 16,
         lineHeight: 19,
     },
-    commentIonicons: {
-        position: 'absolute',
-        top: 395,
-        left: 300,
-        textAlign: 'center',
-    }
+    commentButton: {
+        marginTop: -43,
+        marginRight: 8,
+        height: 34,
+        width: 34,
+        borderRadius: 50,
+        backgroundColor: '#FF6C00',
+        alignSelf: 'flex-end',
+    },
+    commentIconArrowup: {
+        alignSelf: 'center',
+        paddingTop: 4,
+    },
 })
