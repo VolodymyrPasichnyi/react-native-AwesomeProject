@@ -1,4 +1,4 @@
-import { Entypo, Feather, Ionicons } from '@expo/vector-icons'
+import { Feather, Ionicons } from '@expo/vector-icons'
 import { Camera } from 'expo-camera'
 import { useEffect, useState, useRef } from 'react'
 import { Animated, Image, StyleSheet, Text, TextInput, View, Keyboard } from 'react-native'
@@ -26,9 +26,9 @@ export default function CreatePostsScreen() {
     const [hasPermission, setHasPermission] = useState(null);
     const [cameraType, setCameraType] = useState(Camera.Constants.Type.back);
     const [errorMsg, setErrorMsg] = useState(null);
-    const [gesturePosition, setGesturePosition] = useState(new Animated.ValueXY());
     const userId = useSelector(selectUserId);
     const userName = useSelector(selectName);
+
 
     useEffect(() => {
         ;(async () => {
@@ -127,16 +127,16 @@ export default function CreatePostsScreen() {
                         <View style={styles.wrapAvatarBox}>
                             <Image source={{ uri: state.photo }} style={styles.photo} />
                             <TouchableOpacity style={styles.wrapAvatarCamera} onPress={openCamera}>
-                                <Feather name="camera" size={20} color="#FFFFFF" />
+                                <Feather name="camera" size={24} color="#FFFFFF" />
                             </TouchableOpacity>
                         </View>
-                    ): (
+                    ) : (
                         <View style={styles.wrapAvatarFoto}>
                             <Camera style={styles.camera} ref={setCamera} type={cameraType}>
-                                <TouchableOpacity style={styles.iconWrap} onPress={takePhoto}>
-                                    <Feather name="camera" size={20} color="#BDBDBD" />
+                                <TouchableOpacity style={styles.iconWrap}  >
+                                    <Feather name="camera" size={30} color="#BDBDBD" onPress={takePhoto}/>
                                 </TouchableOpacity>
-                                <TouchableOpacity
+                                {/* <TouchableOpacity
                                     style={styles.checkCamera}
                                     onPress={checkCamera}
                                 >
@@ -145,11 +145,12 @@ export default function CreatePostsScreen() {
                                     size={24}
                                     color="#BDBDBD"
                                     />
-                                </TouchableOpacity>
+                                </TouchableOpacity> */}
                             </Camera>
                         </View>
-                )}
-                <Text style={styles.paragraf}>Upload photo</Text>
+                    )}
+                <Text style={styles.paragraf} onPress={uploadPhotoToServer}>Upload photo</Text>
+
                 <View style={styles.wrapAvatarForm}>  
                     <TextInput
                         style={styles.input}
@@ -169,8 +170,8 @@ export default function CreatePostsScreen() {
                     />  
                     </View>                                      
                 </View>
-                <TouchableOpacity style={styles.button} onPress={uploadPostToServer}>  
-                    <Text style={styles.paragraf}>publish</Text>
+                <TouchableOpacity style={styles.button}>  
+                    <Text style={styles.paragraf} onPress={uploadPostToServer}>publish</Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -186,17 +187,17 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     wrapAvatar: {
-        width: 343,
+        width: 345,
         display: 'flex',
         flexDirection: 'column',
         gap: 32,
         marginHorizontal: 16,
-        arginTop: 32,
+        marginTop: 32,
     },
     wrapAvatarBox: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 8,
+        // display: 'flex',
+        // flexDirection: 'column',
+        // gap: 8,
     },
     camera: {
         flex: 1,
@@ -204,31 +205,30 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     iconWrap: {
-        position: 'absolute',
-        top: 90,
-        right: 141,
-        width: 60,
-        height: 60,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'white',
-        borderRadius: 45,
+        // position: 'absolute',
+        // top: 90,
+        // right: 140,
+        // width: 60,
+        // height: 60,
+        // alignItems: 'center',
+        // justifyContent: 'center',
+        // backgroundColor: 'white',
+        // borderRadius: 45,
     },
     checkCamera: {
-        // position: 'absolute',
-        // top: 10,
-        // right: 10,
-        // height: 40,
-        // width: 40,
-        // justifyContent: 'center',
-        // alignItems: 'center',
-        // backgroundColor: 'rgba(255, 255, 255, 0.3)',
-        // borderRadius: 50,
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        height: 40,
+        width: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 50,
         borderColor: 'transparent',
     },
     wrapAvatarFoto: {
-        width: 343,
-        height: 240,
+        width: 345,
+        height: 300,
         backgroundColor: '#F6F6F6',
         border: '1 solid #E8E8E8',
     },

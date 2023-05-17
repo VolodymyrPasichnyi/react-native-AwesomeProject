@@ -1,6 +1,6 @@
 import { AntDesign } from '@expo/vector-icons'
 import { useState, useRef, useEffect  } from 'react'
-import { Image, Keyboard, StyleSheet, TextInput, FlatList, View } from 'react-native'
+import { Image, Keyboard, StyleSheet, TextInput, FlatList, View, TouchableOpacity } from 'react-native'
 import { doc, updateDoc, collection, getDoc, addDoc, onSnapshot } from 'firebase/firestore'
 import { db } from '../firebase/config'
 import { useSelector } from 'react-redux'
