@@ -133,10 +133,15 @@ export default function CreatePostsScreen() {
                     ) : (
                         <View style={styles.wrapAvatarFoto}>
                             <Camera style={styles.camera} ref={setCamera} type={cameraType}>
-                                <TouchableOpacity style={styles.iconWrap}  >
-                                    <Feather name="camera" size={30} color="#BDBDBD" onPress={takePhoto}/>
+                                <TouchableOpacity >
+                                    <Feather
+                                        name="camera"
+                                        size={50}
+                                        color="#FFFFFF"
+                                        style={styles.icon}
+                                        onPress={takePhoto} />
                                 </TouchableOpacity>
-                                {/* <TouchableOpacity
+                                <TouchableOpacity
                                     style={styles.checkCamera}
                                     onPress={checkCamera}
                                 >
@@ -145,7 +150,7 @@ export default function CreatePostsScreen() {
                                     size={24}
                                     color="#BDBDBD"
                                     />
-                                </TouchableOpacity> */}
+                                </TouchableOpacity>
                             </Camera>
                         </View>
                     )}
@@ -195,25 +200,14 @@ const styles = StyleSheet.create({
         marginTop: 32,
     },
     wrapAvatarBox: {
-        // display: 'flex',
-        // flexDirection: 'column',
-        // gap: 8,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8,
     },
     camera: {
         flex: 1,
-        width: 343,
+        width: 340,
         alignItems: 'center',
-    },
-    iconWrap: {
-        // position: 'absolute',
-        // top: 90,
-        // right: 140,
-        // width: 60,
-        // height: 60,
-        // alignItems: 'center',
-        // justifyContent: 'center',
-        // backgroundColor: 'white',
-        // borderRadius: 45,
     },
     checkCamera: {
         position: 'absolute',
@@ -240,13 +234,13 @@ const styles = StyleSheet.create({
         width: 60,
         height: 60,
         top: 90,
-        left: 142,
+        left: 140,
     },
     paragraf: {
         fontFamily: 'RobotoRegular',
         fontSize: 16,
         lineHeight: 19,
-        color: '#BDBDBD',
+        color: '#FFFFFF',
         textAlign: 'left',
     },
     wrapAvatarForm: {
@@ -292,7 +286,7 @@ const styles = StyleSheet.create({
         height: 51,
         paddingHorizontal: 32,
         paddingVertical: 16,
-        backgroundColor: '#F6F6F6',
+        backgroundColor: '#FF6C00',
         borderRadius: 100,
         display: 'flex',
         alignItems: 'center',
